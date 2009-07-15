@@ -1,0 +1,30 @@
+# depslib dependency file v1.0
+1238513978 source:/home/sohaib/projects/MiniShell/main.c
+	<sys/types.h>
+	<stdlib.h>
+	<stdio.h>
+	<unistd.h>
+	<sys/stat.h>
+	<sys/wait.h>
+	<ctype.h>
+	<string.h>
+	<errno.h>
+	<signal.h>
+	<fcntl.h>
+	<readline/readline.h>
+	<readline/history.h>
+	"rline.h"
+
+1237910667 /home/sohaib/projects/MiniShell/rline.h
+
+1238515223 source:/home/sohaib/projects/MiniShell/rline.c
+	<dirent.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<sys/types.h>
+	<sys/errno.h>
+	<readline/readline.h>
+	<readline/history.h>
+	"rline.h"
+

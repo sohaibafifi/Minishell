@@ -1,0 +1,176 @@
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <ctype.h>
+
+
+#define true		1
+#define false		0
+#define MAXBUF		512
+#define MAXARG		512
+
+static char *dir;
+static char *user;
+static char *host;
+static char *at = "@";
+static char *space = " ";
+static char *mode = "$" ;
+char *onearg;
+static char *prompt;
+
+void setvars()
+{
+    //Get the environment variables: host, user, cwd, for our prompt
+    dir = getcwd(NULL, 0); /* NULL param allows for dynamic mem alloc */
+
+    user = getenv("USER");
+    if (user==NULL)
+        user = getenv("USERNAME");
+    if (user==NULL)
+        user = "me";
+
+    host = getenv("HOSTNAME");
+    if (host==NULL)
+        host = "MiniShell" ;
+
+
+}
+void updateprompt(char *newdir)
+{
+
+    *prompt = '\0';
+    strcat(prompt, "[");
+    strcat(prompt, user);
+    strcat(prompt, at);
+    strcat(prompt, host);
+    strcat(prompt, " : ");
+    strcat(prompt, newdir);
+    strcat(prompt, "]");
+    strcat(prompt, mode);
+    strcat(prompt, space);
+}
+/* Define the characters we consider special to the input line */
+int is_special_char(char special)
+{
+    if (special == '&')
+        return true;
+    else if (special == ';')
+        return true;
+    else if (special == '|')
+        return true;
+    else if (special == '<')
+        return true;
+    else if (special == '>')
+        return true;
+    else if (special == '\0')
+        return true;
+    else
+        return false;
+}
+
+void decompose(char tabcmd[][MAXARG], char cmd[])
+{
+    printf("decomposition");
+    int cpt1 = 0, cpt2 = 0;
+    /* clear array tabcmd */
+    for ( cpt1 = 0; cpt1 < MAXBUF; cpt1++)
+    {
+        for ( cpt2 = 0; cpt2 < MAXARG; cpt2++)
+        {
+            tabcmd[cpt2][cpt1] = '\0';
+        }
+    }
+    int j = 0, k = 0, l = 0;  // loop var, cmd[j] ,tabcmd[k,l]
+    for (j=0;cmd[j] != '\0';j++)
+    {
+        if (!is_special_char(cmd[j]))
+        {
+
+            if (l == 0 && cmd[j] == ' ')
+            {
+                printf("found space - do nothing");
+            }
+            else
+            {
+                // then its not a special character... copy into new array
+                tabcmd[k][l] = cmd[j];
+                l++;
+            } //end  if (l == 0 && input[j] == ' ') ..else
+        }
+        else
+        {
+            tabcmd[k][l-1] = '\0';
+            k++;
+            l = 0;
+            tabcmd[k][l] = cmd[j];
+            l++;
+            tabcmd[k][l] = '\0';
+            l = 0; // move down , new string
+            k++;
+        } // end if (!is_special_char(cmd[j])) else
+
+    }
+    k = 0;
+    l = 0;
+    /*while (tabcmd[k][0] != '\0')
+    {
+    	k++;
+    }*/
+}
+
+void executer(char command[MAXBUF] , char args[MAXARG] , char special)
+{
+        int exec_return = -1;
+        int forked;
+        forked = fork();
+        if (forked < 0)
+            perror("MiniShell");
+        if (forked == 0)
+        {
+            /* we're in the child process */
+            exec_return = execvp(command,args);
+            if (exec_return == -1)
+            {
+                printf("MiniShell: %s: command not found !\n",command );
+                exit(0);
+            }else{
+
+                }
+        }else{
+			/* we're in the parent process */
+				waitpid(forked, NULL, 0);
+		}
+
+
+}
+int main()
+{
+    char input[MAXBUF], ch; // these are the vars for the input line and loop
+    int i = 0;
+    char tabcmd[MAXARG][MAXBUF];
+
+    //main loop
+    while ((strncmp(input,"exit", 4))!=0)//strncmp returns 0 if equal
+    {
+        setvars();
+
+        prompt = (char*)calloc(strlen(user)+strlen(host)+strlen(dir)+strlen(at)+10,sizeof(char)); // 128 characters max directory depth
+        updateprompt(dir);
+        printf("\n%s%",prompt);
+        // command line input loop...
+        while ((ch = getchar()) != '\n')
+            input[i++] = ch;
+        input[i] = '\0';
+        i = 0;
+
+        decompose(tabcmd,input);
+        char command[MAXBUF];
+		char args[MAXARG];
+
+    }
+    return 0;
+}
+
