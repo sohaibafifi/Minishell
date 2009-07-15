@@ -1,7 +1,7 @@
 /*
  * \file rline.h
  * \date 2007
- * 
+ *
  * Implementation of TAB completion and history using lib readline.
  */
 /*  Copyright (C) 2007  Martin Zibricky, Martin Satke, Zdenek Straka
@@ -20,10 +20,10 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
- 
+
 #ifndef RLINE_H_
 #define RLINE_H_
 
-extern initialize_readline ();
+extern void initialize_readline ();
 
 #endif /*RLINE_H_*/

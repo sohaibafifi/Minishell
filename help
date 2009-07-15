@@ -1,0 +1,10 @@
+MiniShell, version 0.2 (Tp systeme d'exploitation)
+Ces commandes de shell sont définies de manière interne.Tapez « help » pour voir cette liste.
+Utilisez « man » ou « info » pour en savoir plus sur les commandes qui
+ne font pas partie de cette liste.
+
+ history  		Affiche l'historique des commandes  
+ set                    Definire des variables d'environnement
+ quit,exit              Sortir du shell
+ cd                     Changer le repertoire courant
+ help                   Afficher cette liste d'aide

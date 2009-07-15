@@ -21,9 +21,9 @@
 
 #include    "rline.h"
 
-#define SHELL_CMD_CNT	3
+#define SHELL_CMD_CNT	6
 
-char *shell_commands[] = { "cd", "exit", "history" };
+char *shell_commands[] = { "cd", "exit", "history","quit","set" ,"help"};
 
 /* All possible commands for TAB completion. */
 char **commands;
@@ -86,7 +86,7 @@ static int one (const struct dirent *unused)
 }
 
 /* Init list with commands for completion and tell libreadline how to complete. */
-initialize_readline ()
+void initialize_readline ()
 {
 	/* Add completion for all commands from /bin and /usr/bin. */
 
