@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ -e "/usr/lib/libreadline.so" ]; then
+	echo "======================================";
+	echo " Rien a faire pour les prerequisites  ";
+	echo "======================================";
+else
+	echo "======================================";
+	echo " Vous devez installer libreadline-dev ";
+	echo "======================================";
+	sudo apt-get install libreadline-dev
+
+fi
