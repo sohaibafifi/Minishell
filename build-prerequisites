@@ -1,4 +1,17 @@
 #!/bin/bash
+
+if [ -e "/usr/lib/libc.so" ]; then
+	echo "======================================";
+	echo "     Rien a faire pour Libc6-dev      ";
+	echo "======================================";
+else
+	echo "======================================";
+	echo " Vous devez installer libc6-dev ";
+	echo "======================================";
+	sudo apt-get install libc6-dev libreadline-dev
+
+fi
+
 if [ -e "/usr/lib/libreadline.so" ]; then
 	echo "======================================";
 	echo " Rien a faire pour les prerequisites  ";
