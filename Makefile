@@ -14,17 +14,18 @@ default: all
 all: prerequisites minishell
 
 minishell:
-         $(CC) $(CFLAGS) $(PACKAGE) rline.c main.c
+	$(CC) $(CFLAGS) $(PACKAGE) rline.c main.c
 
 clean:	rm -r $(shell pwd)/$(PACKAGE)
 
 test:run
 
-run:clear
-    $(shell pwd)/$(PACKAGE)	
+run:
+	clear
+	$(shell pwd)/$(PACKAGE)	
 	
 prerequisites:
-              ./build-prerequisites
+	./build-prerequisites
 
 .PHONY: default
 .PHONY: all clean
