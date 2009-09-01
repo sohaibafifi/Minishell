@@ -11,14 +11,13 @@ endif
 
 default: all
 
-all:  minishell
+all: prerequisites minishell
 
 minishell:
 	$(CC) $(CFLAGS) $(PACKAGE) rline.c main.c
 
 clean:	
-	rm -fr *.o *~  $(shell pwd)/$(PACKAGE)
-	/bin/rm -f Makefile config.h config.status config.cache config.log
+	rm -r $(shell pwd)/$(PACKAGE)
 
 test:run
 
