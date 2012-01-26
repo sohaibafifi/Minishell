@@ -1,0 +1,122 @@
+Le but de ce TP est de programmer un shell minimal en C.
+
+== Analyse du travail: ==
+
+         Notre shell sera une simple boucle d'interaction qui affiche une invite de
+commande coloré (prompt()), lit une ligne entrée au clavier (lire()), analyser
+cette ligne (decoupe()), l'exécute, et recommence.
+         Le shell quitte quand l'utilisateur tape Contrôle+D , quit ou exit à la place
+d'une commande.
+         On a rendre l'édition de la ligne de commande un peu plus conviviale:
+support des flèches pour la navigation et la correction, accès à l'historique des
+commandes, complétion automatique, etc. C'est difficile à faire à la main!
+Heureusement, il existe la bibliothèque readline de GNU pour faire cela.
+         Si une commande est en cours d'exécution, un appui sur Contrôle+C
+interrompe la commande et redonne la main à l'utilisateur sans toutefois quitter
+le shell. On utilisera pour cela sigaction(2).
+{{{
+struct sigaction sig;
+sig.sa_flags = 0;
+sig.sa_handler = child_signal;
+/* désactivation l'interruption par Contrôle+C */
+sig.sa_handler = SIG_IGN;
+sigaction(SIGINT, &sig, NULL);
+}}}
+
+       Pour la gestion des plans d’exécutions on a aussi traité deux types de
+commandes: une commande terminée par & sera lancée en tâche de fond tandis
+qu'une commande non terminée par & sera lancée au premier plan. À un moment
+donné, il y a au plus une commande au premier plan et un nombre arbitraire de
+commandes en tâche de fond. (il faut aussi faire attention aux interactions entre
+le handler du signal SIGCHLD et la commande waitpid(2)...)
+       Dans le cas d’un programme lancée en arriere plan le shell n'attend pas qu'il
+termine mais redonne tout de suite la main à l'utilisateur. Toutefois, le shell devra
+tout de même détecter la terminaison (asynchrone) des programmes en tâche de
+fond afin de:
+ *eviter les processus zombies,
+ *prévenir l'utilisateur de la bonne ou mauvaise terminaison de la
+  commande.
+
+    Il faudra pour cela gérer le signal SIGCHLD grâce à un handler
+(voir sigaction(2)). Notant qu’on ne peut recevoir qu'un seul
+signal SIGCHLD pour indiquer la terminaison de plusieurs fils.
+{{{
+struct sigaction sig;
+sig.sa_flags = 0;
+sig.sa_handler = child_signal;
+sigemptyset(&sig.sa_mask);
+sigaction(child_signal,&sig,NULL);
+}}}
+
+        On n’a pas travaillé avec la fonction (*fgets*) -dans la lecture du clavier- qui peut
+être interrompue par l'exécution asynchrone du handler.
+        On a géré la substitution des *~* en répertoire home. Il suffit de regarder la
+valeur de la variable d'environnement HOME. Et on ajouté la colorisation de la
+commande ls et grep en ajoutant un alias vers (ls ou grep) --color=auto.
+        On a ajouté *la gestion des caractères spéciaux* (les méta caractères) dans les
+noms de fichiers (`*`, ?, etc.).Il est bien sûr possible de parcourir à la main les
+répertoires pour trouver tous les fichiers correspondant à un motif donné. C'est long
+à programmer! On risque de plus d'interpréter les motifs d'une manière légèrement
+différente de celle du shell préféré de l'utilisateur, ce qui ne manquera pas de
+l'agacer. Heureusement, il existe une fonction standard glob(3) pour faire ce
+travail à notre place!
+        Chaque fois on décompose notre ligne en tableau des commandes qui
+marchent en séquentielle (séparées par des ;) (*cmds_seq*), grâce au procédure
+*decoupe_ligne_seq* .
+        Pour chaque case (commande) du tableau *cmds_seq* si elle contient un *‘&’* on
+la redécompose en tableau des commandes qui marchent en parallèle (*cmds_par*),
+grâce au procédure *decoupe_ligne_par* .
+        Pour chaque case (commande) du tableau *cmds_par* ou *cmds_seq* (selon le
+cas) on détecte l’existence de la redirection ou pipes lors de la décomposition.
+        Puis on traite les trois cas: redirection, pipes ou simple(en arrière plan ou en
+premier plan).
+        Pour *la redirection* on suppose que le reste de la ligne après le ‘<’ ou ‘>’ ou
+‘>>’est le nom du fichier et on le nettoie avec la fonction *clean_filename*. Et on traite
+les trois types de redirection
+* lire : en cas de ‘<’.
+* écriture : en cas de ‘>’
+* mise à jour: en cas de‘>>’ c'est-à-dire ajouter la sortie à la suite du fichier,
+  sans l'écraser.
+
+     Pour *l’exécution des commandes* on a utilisé *execvp* (pour chercher dans le PATH aussi)
+     Cette appelle est lancée dans le fils après le fork (pour qu’on ne sort pas après
+l’exécution de cette commande)
+     Si la commande est en premier plan on doit l’attendre dans le processus père.
+          On a choisi comme commandes prédéfinis (interne) les commandes
+     suivantes :
+             * *quit* , exit : pour sortir du shell.
+             * *set* : pour changer ou ajouter une variable d’environnement
+                         syntaxe : _set var valeur_
+             * *history* : affiche l’historique des commandes.
+             * *cd* : change le répertoire courant. Cette commande accepte aussila  variable ~ du répertoire HOME.
+             * *Help* :affiche l’aide sur les commandes internes.
+==Jeu d’essais :==
+*Notre mini Shell a pu interpréter ces testes :*
+{{{
+Programme
+Programme&
+Programme 1; programme 2;..... ;programme10[ ;]
+Programme 1;|programme2 |..... |programme10
+ls –l *.c l*.txt
+cd
+Programme 1; programme 2|programme3;..... ;programme10[ ;]
+ls -l > file.txt
+ls –a ../ >> file.txt
+grep a < file.txt
+exit
+cd ~
+set PATH /usr/bin
+}}}
+==Remarques==
+       Pour compiler le code source vous devez avoir les bibliothèques
+suivantes :
+       *    Libc6-dev.
+       *    Libreadline-dev.
+            On a crée un script shell *run.sh* qui va tous faire pour la compilation
+       et l’exécution.
+       Ou bien utiliser la commande make 
+{{{
+./configure
+make 
+./src/minishell
+}}}
